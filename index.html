@@ -9,14 +9,211 @@
 
 <body>
   <h1>Karma DApp</h1>
+  <button class="enableEthereumButton btn">Enable Ethereum</button>
+  <button class="sendEthButton btn">Send Eth</button>
+  <button class="mintButton btn">Mint Eth</button>
   <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> -->
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <script>
-    // var Web3 = require("web3")
-    const web3 = new Web3("https://eth-goerli.api.onfinality.io/public")
+  <!-- <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script> -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
 
-    web3.eth.getBlockNumber(function (error, result) {
-      console.log(result)
+
+  <script>
+    window.addEventListener('load', async function () {
+
+      if (typeof window.ethereum !== 'undefined') {
+        console.log('MetaMask is installed!');
+      } else {
+        console.log('MetaMask not installed!');
+      }
+
+      await window.ethereum.enable()
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+      
+      console.log("Account:", await signer.getAddress());
+      console.log(await provider.getBlockNumber())
+
+      const KarmaAbi = [
+        {
+          "inputs": [],
+          "name": "getBlockNum",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "blockNum",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "getGiverTokensBalace",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "giverBalance",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "getKarmaTokensBalace",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "karmaBalance",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "getLastTouchedBlock",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "lastTouchedBlock",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "getNickname",
+          "outputs": [
+            {
+              "internalType": "string",
+              "name": "nickname",
+              "type": "string"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "mint",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "string",
+              "name": "nickname",
+              "type": "string"
+            }
+          ],
+          "name": "setNickname",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "transferKarma",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        }
+      ]
+      const KARMA_ADDRESS = "0xf6de6Ef872025Dd093F6a9b46CB9E9dDa4Ca4C3F"
+
+      const karmaContract = new ethers.Contract(KARMA_ADDRESS, KarmaAbi, provider);
+      const karmaContractSignable = karmaContract.connect(signer);
+
+
+      // ===================================================
+
+      const ethereumButton = document.querySelector('.enableEthereumButton');
+      const sendEthButton = document.querySelector('.sendEthButton');
+      const mintButton = document.querySelector('.mintButton');
+
+      let accounts = [];
+
+      //Sending Ethereum to an address
+      sendEthButton.addEventListener('click', () => {
+        ethereum
+          .request({
+            method: 'eth_sendTransaction',
+            params: [
+              {
+                from: accounts[0],
+                to: '0x2f318C334780961FB129D2a6c30D0763d9a5C970',
+                value: '0x29a2241af62c0000',
+                gasPrice: '0x09184e72a000',
+                gas: '0x2710',
+              },
+            ],
+          })
+          .then((txHash) => console.log(txHash))
+          .catch((error) => console.error);
+      });
+
+      mintButton.addEventListener('click', async () => {
+        await karmaContractSignable.mint(await signer.getAddress())
+        // console.log(await karmaContract.getNickname(await signer.getAddress()))
+      });
+
+      ethereumButton.addEventListener('click', () => {
+        getAccount();
+      });
+
+      async function getAccount() {
+        accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+      }
     })
   </script>
 </body>
