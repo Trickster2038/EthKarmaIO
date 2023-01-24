@@ -26,7 +26,8 @@ contract Karma {
         }
         users[addr].lastTouchedBlock = block.number;
     } 
-
+    
+    //TODO: check to != from
     function transferKarma(address to, uint amount) public {
         require(users[msg.sender].giverTokensBalance >= amount, "Not enought giver Tokens");
         require(amount > 0, "Negative amount");

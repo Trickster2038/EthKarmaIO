@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!-- TODO: observe side accounts & no metamask & styles -->
+
 <head>
   <meta charset="utf-8">
   <title>Karma DApp</title>
@@ -10,6 +12,13 @@
 
 <body>
   <h1>Karma.IO DApp</h1>
+  <div>
+    <p>Personal Card</p>
+  </div>
+  <div>
+    <p id="load-spinner"></p>
+  </div>
+  <hr />
   <div>
     <p>Current block num: </p>
     <p id="current-blocknum">Undefined</p>
@@ -35,9 +44,28 @@
     <p>Last touched Block: </p>
     <p id="last-touched-block">Undefined</p>
   </div>
-  <button class="btn" id="enable-metamask-btn">Enable Metamask</button>
   <button class="btn" id="mint-btn">Mint Karma</button>
+  <hr />
+
+  <p>Transfer address</p>
+  <input type="text" maxlength="66" id="transfer-address" />
+  <p>Transfer amount</p>
+  <input type="text" maxlength="66" id="transfer-amount" />
+  <br />
+  <br />
   <button class="btn" id="transfer-btn">Transfer Karma</button>
+  <hr />
+
+  <p>New nickname</p>
+  <input type="text" maxlength="30" id="nickname-input" />
+  <br />
+  <br />
+  <button class="btn" id="nickname-btn">Set nickname</button>
+  <hr />
+
+  <button class="btn" id="enable-metamask-btn">Enable Metamask</button>
+
+
 
   <script>
     window.addEventListener('load', async function () {
@@ -188,7 +216,6 @@
       ]
 
       const KARMA_ADDRESS = "0x549Ff220AFe2b4dBE7fE0EaA02E8DEd89f75cE6a"
-
       const karmaContract = new ethers.Contract(KARMA_ADDRESS, KarmaAbi, provider);
       const karmaContractSignable = karmaContract.connect(signer);
 
@@ -197,14 +224,21 @@
       const ethereumButton = document.getElementById('enable-metamask-btn');
       const mintButton = document.getElementById('mint-btn');
       const transferButton = document.getElementById('transfer-btn');
+      const transferAddressInput = document.getElementById('transfer-address')
+      const transferAmountInput = document.getElementById('transfer-amount')
+      const nicknameButton = document.getElementById('nickname-btn')
+      const nicknameInput = document.getElementById('nickname-input')
 
       mintButton.addEventListener('click', async () => {
         await karmaContractSignable.mint(await signer.getAddress())
       });
 
-      //TODO: ... 
       transferButton.addEventListener('click', async () => {
-        await karmaContractSignable.transferKarma(address_to, amount)
+        await karmaContractSignable.transferKarma(transferAddressInput.value, transferAmountInput.value)
+      });
+
+      nicknameButton.addEventListener('click', async () => {
+        await karmaContractSignable.setNickname(nicknameInput.value)
       });
 
       ethereumButton.addEventListener('click', () => {
@@ -224,6 +258,10 @@
       const giver_p = document.getElementById("giver-tokens")
       const last_block_p = document.getElementById("last-touched-block")
 
+      const spinner_p = document.getElementById("load-spinner")
+
+      var i = 0
+
       setInterval(async function () {
 
         blocknum_p.innerHTML = await provider.getBlockNumber()
@@ -232,6 +270,9 @@
         karma_p.innerHTML = await karmaContractSignable.getKarmaTokensBalance(signer.getAddress())
         giver_p.innerHTML = await karmaContractSignable.getGiverTokensBalance(signer.getAddress())
         last_block_p.innerHTML = await karmaContractSignable.getLastTouchedBlock(signer.getAddress())
+
+        spinner_p.innerHTML = "=" + "=".repeat(i % 20)
+        i++
       }, 500);
 
     })
