@@ -34,15 +34,15 @@ contract Karma {
         users[to].karmaTokensBalance += amount;
     }   
 
-    function getNickname (address addr) public view returns (string memory nickname){
+    function getNickname(address addr) public view returns (string memory nickname){
         return users[addr].nickname;
     }
 
-    function getGiverTokensBalace(address addr) public view returns (uint giverBalance) {
+    function getGiverTokensBalance(address addr) public view returns (uint giverBalance) {
         return users[addr].giverTokensBalance;
     }
 
-    function getKarmaTokensBalace(address addr) public view returns (uint karmaBalance) {
+    function getKarmaTokensBalance(address addr) public view returns (uint karmaBalance) {
         return users[addr].karmaTokensBalance;
     }
 

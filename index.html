@@ -5,17 +5,39 @@
   <meta charset="utf-8">
   <title>Karma DApp</title>
   <!-- <link href="style.css" rel="stylesheet" /> -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
 </head>
 
 <body>
-  <h1>Karma DApp</h1>
-  <button class="enableEthereumButton btn">Enable Ethereum</button>
-  <button class="sendEthButton btn">Send Eth</button>
-  <button class="mintButton btn">Mint Eth</button>
-  <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script> -->
-  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
-
+  <h1>Karma.IO DApp</h1>
+  <div>
+    <p>Current block num: </p>
+    <p id="current-blocknum">Undefined</p>
+  </div>
+  <hr />
+  <div>
+    <p>Address: </p>
+    <p id="address">Undefined</p>
+  </div>
+  <div>
+    <p>Nickname: </p>
+    <p id="nickname">Undefined</p>
+  </div>
+  <div>
+    <p>Karma Tokens: </p>
+    <p id="karma-tokens">Undefined</p>
+  </div>
+  <div>
+    <p>Giver Tokens: </p>
+    <p id="giver-tokens">Undefined</p>
+  </div>
+  <div>
+    <p>Last touched Block: </p>
+    <p id="last-touched-block">Undefined</p>
+  </div>
+  <button class="btn" id="enable-metamask-btn">Enable Metamask</button>
+  <button class="btn" id="mint-btn">Mint Karma</button>
+  <button class="btn" id="transfer-btn">Transfer Karma</button>
 
   <script>
     window.addEventListener('load', async function () {
@@ -26,15 +48,54 @@
         console.log('MetaMask not installed!');
       }
 
-      await window.ethereum.enable()
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       await provider.send("eth_requestAccounts", []);
       const signer = await provider.getSigner();
-      
-      console.log("Account:", await signer.getAddress());
-      console.log(await provider.getBlockNumber())
-
       const KarmaAbi = [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "name": "mint",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "string",
+              "name": "nickname",
+              "type": "string"
+            }
+          ],
+          "name": "setNickname",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "transferKarma",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
         {
           "inputs": [],
           "name": "getBlockNum",
@@ -56,7 +117,7 @@
               "type": "address"
             }
           ],
-          "name": "getGiverTokensBalace",
+          "name": "getGiverTokensBalance",
           "outputs": [
             {
               "internalType": "uint256",
@@ -75,7 +136,7 @@
               "type": "address"
             }
           ],
-          "name": "getKarmaTokensBalace",
+          "name": "getKarmaTokensBalance",
           "outputs": [
             {
               "internalType": "uint256",
@@ -123,88 +184,27 @@
           ],
           "stateMutability": "view",
           "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "addr",
-              "type": "address"
-            }
-          ],
-          "name": "mint",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "string",
-              "name": "nickname",
-              "type": "string"
-            }
-          ],
-          "name": "setNickname",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "to",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "amount",
-              "type": "uint256"
-            }
-          ],
-          "name": "transferKarma",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
         }
       ]
-      const KARMA_ADDRESS = "0xf6de6Ef872025Dd093F6a9b46CB9E9dDa4Ca4C3F"
+
+      const KARMA_ADDRESS = "0x549Ff220AFe2b4dBE7fE0EaA02E8DEd89f75cE6a"
 
       const karmaContract = new ethers.Contract(KARMA_ADDRESS, KarmaAbi, provider);
       const karmaContractSignable = karmaContract.connect(signer);
 
+      // ===== Buttons handlers ======
 
-      // ===================================================
-
-      const ethereumButton = document.querySelector('.enableEthereumButton');
-      const sendEthButton = document.querySelector('.sendEthButton');
-      const mintButton = document.querySelector('.mintButton');
-
-      let accounts = [];
-
-      //Sending Ethereum to an address
-      sendEthButton.addEventListener('click', () => {
-        ethereum
-          .request({
-            method: 'eth_sendTransaction',
-            params: [
-              {
-                from: accounts[0],
-                to: '0x2f318C334780961FB129D2a6c30D0763d9a5C970',
-                value: '0x29a2241af62c0000',
-                gasPrice: '0x09184e72a000',
-                gas: '0x2710',
-              },
-            ],
-          })
-          .then((txHash) => console.log(txHash))
-          .catch((error) => console.error);
-      });
+      const ethereumButton = document.getElementById('enable-metamask-btn');
+      const mintButton = document.getElementById('mint-btn');
+      const transferButton = document.getElementById('transfer-btn');
 
       mintButton.addEventListener('click', async () => {
         await karmaContractSignable.mint(await signer.getAddress())
-        // console.log(await karmaContract.getNickname(await signer.getAddress()))
+      });
+
+      //TODO: ... 
+      transferButton.addEventListener('click', async () => {
+        await karmaContractSignable.transferKarma(address_to, amount)
       });
 
       ethereumButton.addEventListener('click', () => {
@@ -214,6 +214,26 @@
       async function getAccount() {
         accounts = await ethereum.request({ method: 'eth_requestAccounts' });
       }
+
+      // ===== Info update ====== 
+
+      const blocknum_p = document.getElementById("current-blocknum")
+      const address_p = document.getElementById("address")
+      const nickname_p = document.getElementById("nickname")
+      const karma_p = document.getElementById("karma-tokens")
+      const giver_p = document.getElementById("giver-tokens")
+      const last_block_p = document.getElementById("last-touched-block")
+
+      setInterval(async function () {
+
+        blocknum_p.innerHTML = await provider.getBlockNumber()
+        address_p.innerHTML = await signer.getAddress()
+        nickname_p.innerHTML = await karmaContractSignable.getNickname(signer.getAddress())
+        karma_p.innerHTML = await karmaContractSignable.getKarmaTokensBalance(signer.getAddress())
+        giver_p.innerHTML = await karmaContractSignable.getGiverTokensBalance(signer.getAddress())
+        last_block_p.innerHTML = await karmaContractSignable.getLastTouchedBlock(signer.getAddress())
+      }, 500);
+
     })
   </script>
 </body>
